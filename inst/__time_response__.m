@@ -123,7 +123,7 @@ function [y, t, x] = __time_response__ (response, args, names, nout)
   ## handle names and set reasonable names if empty
   idx_no_name = cellfun (@isempty, names);
   sys_numbers = find (idx_no_name);
-  names(sys_numbers) = cellstr (arrayfun (@(x) ['Sys ',num2str(x)], ...
+  names(sys_numbers) = cellstr (arrayfun (@(x) ['Sys',num2str(x)], ...
                                 sys_numbers(:), "uniformoutput", false));
 
   ## discretizaiton of continuous time systems
@@ -266,6 +266,9 @@ function [y, t, x] = __time_response__ (response, args, names, nout)
         error ("time_response: invalid response type '%s'\n", response);
     endswitch
 
+    str = [str, sprintf(" %s,", names{:})];
+    str = substr (str, 1, length (str) - 1);
+
     ## get last system present in the subplots
     last_system = zeros (rows, cols);
     for i = 1 : rows
@@ -283,7 +286,12 @@ function [y, t, x] = __time_response__ (response, args, names, nout)
       for j = 1 : cols            # for every input (except for initial where cols=1)
         if last_system(i,j) > 0   # only if there is a system with this in-/output combination
 
-          subplot (rows, cols, (i-1)*cols+j);
+          if (rows != 1) && (cols != 1)
+            ## if we only have one plot, don't use subplot
+            ## allowing a step response in an existing subplot
+            subplot (rows, cols, (i-1)*cols+j);
+          endif
+
           box on;
 
           for k = 1 : last_system(i,j)                # for every system for this in-/output

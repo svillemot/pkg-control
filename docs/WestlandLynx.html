@@ -529,18 +529,24 @@
             </div>
             <div class="card-body">
 <dl>
-<dt><code><h5 class="fs">Function File: <var>sys</var> = <b>WestlandLynx</b> ()</code></h5></dt>
+<dt><code><h5 class="fs">Function File: <var>sys</var> = <b>WestlandLynx</b> &nbsp;</code></h5></dt>
 </dl>
+
 <p> Model of the Westland Lynx Helicopter about hover.
- </p><<div class="ms-5">
-table><tr><td>&nbsp;</td><td><pre class="example"> </pre><pre class="example"> INPUTS
- main rotor collective
+</p><div class="ms-5">
+
+<p> <strong>System variables</strong>
+</p>
+<p> System inputs
+ </p><table><tr><td>&nbsp;</td><td><pre class="example"> </pre><pre class="example"> main rotor collective
  longitudinal cyclic
  lateral cyclic
  tail rotor collective
+ </pre><pre class="example">
+ </pre></td></tr></table>
 
- STATES
- pitch attitude           theta       [rad]
+<p> System states
+ </p><table><tr><td>&nbsp;</td><td><pre class="example"> </pre><pre class="example"> pitch attitude           theta       [rad]
  roll attitude            phi         [rad]
  roll rate (body-axis)    p           [rad/s]
  pitch rate (body-axis)   q           [rad/s]
@@ -548,9 +554,11 @@ table><tr><td>&nbsp;</td><td><pre class="example"> </pre><pre class="example"> I
  forward velocity         v_x         [ft/s]
  lateral velocity         v_y         [ft/s]
  vertical velocity        v_z         [ft/s]
+ </pre><pre class="example">
+ </pre></td></tr></table>
 
- OUTPUTS
- heave velocity           H_dot       [ft/s]
+<p> System outputs
+ </p><table><tr><td>&nbsp;</td><td><pre class="example"> </pre><pre class="example"> heave velocity           H_dot       [ft/s]
  pitch attitude           theta       [rad]
  roll attitude            phi         [rad]
  heading rate             psi_dot     [rad/s]
@@ -560,7 +568,7 @@ table><tr><td>&nbsp;</td><td><pre class="example"> </pre><pre class="example"> I
  </pre></td></tr></table>
 
 
-<p> <strong>References</strong><br>
+<p> <strong>References</strong>
  </p><ol>
 <li>
  Skogestad, S. and Postlethwaite I. (2005)

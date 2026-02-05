@@ -139,8 +139,34 @@ function [y_r, t_r, x_r] = lsim (varargin)
     error ("lsim: initial state vector 'x0' must be empty or a real-valued vector");
   endif
 
+  n_sys = nnz (sys_idx);
+
+  ## get system names
+  leg = cell (1, n_sys);
+  idx = find (sys_idx);
+  names = cell (1, n_sys);
+  for k = 1 : n_sys
+    try
+      names{k} = inputname (idx(k));
+    catch
+      names{k} = ['Sys',num2str(k)];    # catch case  lsim (lticell{:}, ...)
+    end_try_catch
+  endfor
 
   ## function [y, t, x_arr] = __linear_simulation__ (sys, u, t, x0)
+
+  if (! isempty (x0))
+    is_ss = cellfun (@isa, varargin(sys_idx), {"ss"});
+    if (! all (is_ss))
+      no_ss = find (is_ss==0);
+      no_ss_names = sprintf ("%s, ", names{no_ss});
+      no_ss_names = no_ss_names(1:end-2);
+      warning ("lsim: system %s not in state space, x0 is ambiguous and system is ignored\n", no_ss_names);
+      for j = 1:length (no_ss)
+        names{j} = [names{j}, " (x0=0)"];
+      endfor
+    endif
+  endif
 
   [y, t, x] = cellfun (@__linear_simulation__, varargin(sys_idx), {u}, {t}, {x0}, "uniformoutput", false);
 
@@ -149,7 +175,6 @@ function [y_r, t_r, x_r] = lsim (varargin)
     ## extract plotting styles
     tmp = cumsum (sys_idx);
     tmp(sys_idx | ! sty_idx) = 0;
-    n_sys = nnz (sys_idx);
     sty = arrayfun (@(x) varargin(tmp == x), 1:n_sys, "uniformoutput", false);
 
     ## default plotting styles if empty
@@ -158,18 +183,6 @@ function [y_r, t_r, x_r] = lsim (varargin)
     def = arrayfun (@(k) {"color", colororder(1+rem (k-1, rc), :)}, 1:n_sys, "uniformoutput", false);
     idx = cellfun (@isempty, sty);
     sty(idx) = def(idx);
-
-    ## get system names for legend
-    ## leg = cellfun (@inputname, find (sys_idx), "uniformoutput", false);
-    leg = cell (1, n_sys);
-    idx = find (sys_idx);
-    for k = 1 : n_sys
-      try
-        leg{k} = inputname (idx(k));
-      catch
-        leg{k} = "";                                    # catch case  lsim (lticell{:}, ...)
-      end_try_catch
-    endfor
 
     [p, m] = size (varargin(sys_idx){1});
     ct_idx = cellfun (@isct, varargin(sys_idx));
@@ -222,7 +235,7 @@ function [y_r, t_r, x_r] = lsim (varargin)
     endfor
     xlabel ("Time [s]");
     if (p == 1 && m == 1)
-      legend (leg)
+      legend (names)
     endif
     hold off;
   else                                                  # return values
@@ -235,6 +248,10 @@ endfunction
 
 
 function [y, t, x_arr] = __linear_simulation__ (sys, u, t, x0)
+
+  if (! isa (sys, "ss"))
+    x0 =[]; # ignore initial condition for system not in state space
+  endif
 
   method = "foh";
   [urows, ucols] = size (u);

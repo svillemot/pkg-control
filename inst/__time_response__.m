@@ -273,7 +273,6 @@ function [y, t, x] = __time_response__ (response, args, names, nout)
         error ("time_response: invalid response type '%s'\n", response);
     endswitch
 
-    str = [str, sprintf(" %s,", names{:})];
     str = substr (str, 1, length (str) - 1);
 
     ## get last system present in the subplots

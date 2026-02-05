@@ -5,7 +5,11 @@ Summary of important user-visible changes for releases of the control package
 control-4.2.1+  Upcoming version 4.2.2, not yet released
 ===============================================================================
 
-**
+** initial: error for systems not as state space model since initial
+   condition is unclear
+
+** step: for input-output models, the initial condition is set to zero
+   because initial condition is uncelar 
 
 ===============================================================================
 control-4.2.1  Release date 2026-01-20

@@ -17,13 +17,15 @@
 
 ## -*- texinfo -*-
 ## @deftypefn{Function File} {} lsim (@var{sys}, @var{u})
-## @deftypefnx{Function File} {} lsim (@var{sys1}, @var{sys2}, @dots{}, @var{sysN}, @var{u})
-## @deftypefnx{Function File} {} lsim (@var{sys1}, @var{'style1'}, @dots{}, @var{sysN}, @var{'styleN'}, @var{u})
-## @deftypefnx{Function File} {} lsim (@var{sys1}, @dots{}, @var{u}, @var{t})
-## @deftypefnx{Function File} {} lsim (@var{sys1}, @dots{}, @var{u}, @var{t}, @var{x0})
+## @deftypefnx{Function File} {} lsim (@var{sys1}, @var{sys2}, ..., @var{sysN}, @var{u})
+## @deftypefnx{Function File} {} lsim (@var{sys1}, @var{style1}, ..., @var{sysN}, @var{styleN}, @var{u})
+## @deftypefnx{Function File} {} lsim (@var{sys1}, ..., @var{u}, @var{t})
+## @deftypefnx{Function File} {} lsim (@var{sys1}, ..., @var{u}, @var{t}, @var{x0})
 ## @deftypefnx{Function File} {[@var{y}, @var{t}, @var{x}] =} lsim (@var{sys}, @var{u})
 ## @deftypefnx{Function File} {[@var{y}, @var{t}, @var{x}] =} lsim (@var{sys}, @var{u}, @var{t})
 ## @deftypefnx{Function File} {[@var{y}, @var{t}, @var{x}] =} lsim (@var{sys}, @var{u}, @var{t}, @var{x0})
+## @deftypefnx{Function File} {[...] =} lsim (..., @var{method})
+##
 ## Simulate @acronym{LTI} model response to arbitrary inputs.  If no output arguments are given,
 ## the system response is plotted on the screen.
 ##
@@ -41,10 +43,22 @@
 ## @code{tsam = t/(rows(u)-1)}.  If @var{sys} is a discrete-time system and @var{t}
 ## is not specified, vector @var{t} is assumed to be @code{0 : tsam : tsam*(rows(u)-1)}.
 ## @item x0
-## Vector of initial conditions for each state.  If not specified, a zero vector is assumed.
-## @item 'style'
+## Vector of initial conditions for each state of a system in state space.
+## If not specified, a zero vector is assumed.
+## Note: A vector @var{x0} provided for an input-output system representation
+## is ignored and a zero vector of initial conditions is used instead because
+## the internally used state space representaton does generally not match
+## the one assumed for @var{x0}. For a simulation of an input-output model
+## with initial conditions for the output @math{y} and its time-derivatives,
+## see remarks below.
+## @item style
 ## Line style and color, e.g. 'r' for a solid red line or '-.k' for a dash-dotted
-## black line.  See @command{help plot} for details.
+## black line. See @command{help plot} for details.
+## @item method
+## Method that is used to discretize a continuous-time system for the simulation.
+## See
+## @inlinefmtifelse{latex, @link{@@lti/c2d,@@lti/c2d}, @ref{@@lti/c2d}}
+## for possible methods. If @var{method} is not provided, the default is 'foh'.
 ## @end table
 ##
 ## @strong{Outputs}
@@ -57,6 +71,34 @@
 ## @item x
 ## State trajectories array.  Has @code{length (t)} rows and as many columns as states.
 ## @end table
+##
+## @strong{Remarks}
+##
+## @itemize
+##
+## @item For the simulation, continuous-time systems are discretized using the
+## selected method @var{method} or the default first-order-hold method (foh), see
+## @inlinefmtifelse{latex, @link{@@lti/c2d,@@lti/c2d}, @ref{@@lti/c2d}}
+## for details.
+##
+## @item For a SISO input-output model @math{G} and initial values for the output
+## @math{y} and its derivatives up to order @math{n-1} the corresponding state space
+## represetaiton is computed by:
+##
+## @example
+## @group
+## [A,b,c,d] = ssdata (G);
+## T = obsv (A, c);
+## G_ss = ss2ss (ss (G), T);
+## initial (G_ss, x0);
+## @end group
+## @end example
+##
+## Note that, in general, the states of @math{G_ss} are only equal to the output
+## @math{y} and its first @math{n-1} time derivaties if @math{u=0}, which is the
+## case for the initial conditions immediately before @math{t=0}.
+##
+## @end itemize
 ##
 ## @seealso{impulse, initial, step}
 ## @end deftypefn
@@ -75,6 +117,16 @@ function [y_r, t_r, x_r] = lsim (varargin)
     print_usage ();
   endif
 
+  ## if method is provided, it is the last parameter and method
+  ## is the only char parameter at the end of the parameter list
+  if (ischar (varargin{end}))
+    method = varargin{end};
+    varargin = varargin(1:end-1);
+  else
+    method = "foh";
+  endif
+
+  ## get remaining parameters
   idx = cellfun (@islogical, varargin);
   tmp = cellfun (@double, varargin(idx), "uniformoutput", false);
   varargin(idx) = tmp;
@@ -168,7 +220,7 @@ function [y_r, t_r, x_r] = lsim (varargin)
     endif
   endif
 
-  [y, t, x] = cellfun (@__linear_simulation__, varargin(sys_idx), {u}, {t}, {x0}, "uniformoutput", false);
+  [y, t, x] = cellfun (@__linear_simulation__, varargin(sys_idx), {u}, {t}, {x0}, {method}, "uniformoutput", false);
 
 
   if (nargout == 0)                                     # plot information
@@ -247,13 +299,12 @@ function [y_r, t_r, x_r] = lsim (varargin)
 endfunction
 
 
-function [y, t, x_arr] = __linear_simulation__ (sys, u, t, x0)
+function [y, t, x_arr] = __linear_simulation__ (sys, u, t, x0, method)
 
   if (! isa (sys, "ss"))
     x0 =[]; # ignore initial condition for system not in state space
   endif
 
-  method = "foh";
   [urows, ucols] = size (u);
   len_t = length (t);
 
@@ -329,7 +380,7 @@ function [y, t, x_arr] = __linear_simulation__ (sys, u, t, x0)
   ## When discretization method was foh transform initial state into
   ## the states representing the foh form.
   ## The required matrix "Bd1" is stored by c2d in sys.userdata
-  if was_ct && (method == 'foh') && (max (size (sys.userdata)) > 0)
+  if was_ct && (strcmp (method, "foh")) && (max (size (sys.userdata)) > 0)
     x = x - sys.userdata * u(1,:)';
   endif
 
@@ -342,7 +393,7 @@ function [y, t, x_arr] = __linear_simulation__ (sys, u, t, x0)
 
   ## When discretization method was foh transform back from foh states
   ## into original state
-  if was_ct && (method == 'foh') && (max (size (sys.userdata)) > 0)
+  if was_ct && (strcmp (method, "foh")) && (max (size (sys.userdata)) > 0)
     x_arr = x_arr + u * sys.userdata';
   endif
 

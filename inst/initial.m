@@ -84,9 +84,7 @@
 ## @end tex
 ## @ifnottex
 ## @example
-## @group
 ## x(k+1) = A x(k) + B u(k) ,   y(k) = C x(k) + D u(k) ,   x(0) = x0
-## @end group
 ## @end example
 ## @end ifnottex
 ##
@@ -101,7 +99,7 @@
 ##
 ## @strong{Remark}
 ##
-## For a SISO input-output model @code{G} and initial values for the output @math{y}
+## For a SISO input-output model @math{G} and initial values for the output @math{y}
 ## and its derivatives up to order @math{n-1} the corresponding state space
 ## represetaiton is computed by:
 ##
@@ -113,6 +111,10 @@
 ## initial (G_ss, x0);
 ## @end group
 ## @end example
+##
+## Note that, in general, the states of @math{G_ss} are only equal to the output
+## @math{y} and its first @math{n-1} time derivaties if @math{u=0}, which is the
+## case for the initial condition response.
 ##
 ## @seealso{impulse, lsim, step}
 ## @end deftypefn

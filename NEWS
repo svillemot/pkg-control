@@ -8,8 +8,9 @@ control-4.2.1+  Upcoming version 4.2.2, not yet released
 ** initial: error for systems not as state space model since initial
    condition is unclear
 
-** step: for input-output models, the initial condition is set to zero
-   because initial condition is uncelar 
+** lsim: for input-output models, the initial condition is set to zero
+   because initial condition is unclear, new parameter metrhod for the
+   used discretization method
 
 ===============================================================================
 control-4.2.1  Release date 2026-01-20
